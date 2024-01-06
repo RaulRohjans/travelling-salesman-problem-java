@@ -1,6 +1,6 @@
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Random;
+import utils.TSPThread;
+
+import java.util.*;
 
 import static utils.Helper.*;
 
@@ -8,7 +8,8 @@ import static utils.Helper.*;
 public class Main {
 
     private static final int POSSIBLE_TOURS_SIZE = 10;
-    private static final int MAX_GENERATIONS = 1000; // Number of times the possible tours will be improved
+    private static final int MAX_GENERATIONS = 10; // Number of times the possible tours will be improved
+    private static final int THREAD_NUMBER = 5;
     private static final double CROSSOVER_RATE = 0.7;
     private static final double MUTATION_RATE = 0.2;
     private static final double DE_FACTOR = 0.5;
@@ -34,14 +35,16 @@ public class Main {
         Map<Integer, int[][]> inputValues = ReadInputFileData(inputFilePath);
         int cityMapSize = inputValues.entrySet().stream().findFirst().get().getKey();
         int[][] cityMap = inputValues.entrySet().stream().findFirst().get().getValue();*/
-        int cityMapSize = 5;
+
         int[][] cityMap = LoadTestCities();
+        int cityMapSize = cityMap.length;
 
         int[][] possibleTours = new int[POSSIBLE_TOURS_SIZE][cityMapSize];
         int[] distances = new int[POSSIBLE_TOURS_SIZE];
-        Arrays.fill(distances, Integer.MAX_VALUE);
 
-        Random rand = new Random();
+        // Split the workload among threads
+        int generationsPerThread = MAX_GENERATIONS / THREAD_NUMBER;
+        List<TSPThread> threads = new ArrayList<>();
         /* ---------------------- */
 
         /* Initialize possible tours with random values */
@@ -52,48 +55,25 @@ public class Main {
         /* -------------------------------------------- */
 
         /* --- Start Differential Evolution Algo --- */
-        for (int generation = 0; generation < MAX_GENERATIONS; ++generation) {
-            for (int i = 0; i < POSSIBLE_TOURS_SIZE; ++i) {
-                // Select three indexes for the crossover process
-                int targetIndex, alterIndex1, alterIndex2;
-                do {
-                    targetIndex = rand.nextInt(POSSIBLE_TOURS_SIZE);
-                    alterIndex1 = rand.nextInt(POSSIBLE_TOURS_SIZE);
-                    alterIndex2 = rand.nextInt(POSSIBLE_TOURS_SIZE);
-                } while (alterIndex1 == targetIndex || alterIndex2 == targetIndex || alterIndex1 == alterIndex2);
+        for (int i = 0; i < THREAD_NUMBER; ++i) {
+            int startGeneration = i * generationsPerThread;
+            int endGeneration = (i + 1) * generationsPerThread;
 
-                // Create an altered individual by combining the other two into this one
-                for (int j = 0; j < cityMapSize; ++j) {
-                    if (rand.nextDouble() < CROSSOVER_RATE || j == cityMapSize - 1) {
-                        possibleTours[i][j] = (int) (possibleTours[alterIndex1][j] + DE_FACTOR * (possibleTours[alterIndex2][j] - possibleTours[alterIndex1][j]));
-                    }
+            TSPThread thread = new TSPThread(startGeneration, endGeneration, possibleTours, distances,
+                    cityMap, CROSSOVER_RATE, MUTATION_RATE, DE_FACTOR);
+            threads.add(thread);
+        }
 
-                    // Repair process
-                    for (int k = 0; k < j; ++k) {
-                        if (possibleTours[i][j] == possibleTours[i][k]) {
-                            possibleTours[i][j] = GenerateNewUniqueCity(possibleTours[i], cityMapSize, j);
-                            k = -1;
-                        }
-                    }
-                }
+        for (TSPThread thread : threads) { // Start threads
+            thread.start();
+        }
 
-                // Enforce value check
-                for (int j = 0; j < cityMapSize; ++j) {
-                    if (possibleTours[i][j] < 0) {
-                        possibleTours[i][j] = 0;
-                    } else if (possibleTours[i][j] >= cityMapSize) {
-                        possibleTours[i][j] = cityMapSize - 1;
-                    }
-                }
-
-                // Calculate Distance
-                int mutantDistance = CalcTourDistance(possibleTours[i], cityMap, cityMapSize);
-
-                // Update the distance if the altered is better
-                if (mutantDistance < distances[i]) {
-                    distances[i] = mutantDistance;
-                }
+        try {
+            for (TSPThread thread : threads) { // Wait for threads to finish
+                thread.join();
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         /* ----------------------------------------- */
 
