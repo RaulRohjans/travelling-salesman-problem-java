@@ -8,7 +8,7 @@ import static utils.Helper.*;
 public class Main {
 
     private static final int POSSIBLE_TOURS_SIZE = 10;
-    private static final int MAX_GENERATIONS = 1000; // Number of times the possible tours will be improved
+    private static final int MAX_GENERATIONS = 10; // Number of times the possible tours will be improved
     private static final double CROSSOVER_RATE = 0.7;
     private static final double MUTATION_RATE = 0.2;
     private static final double DE_FACTOR = 0.5;
@@ -74,6 +74,20 @@ public class Main {
                             possibleTours[i][j] = GenerateNewUniqueCity(possibleTours[i], cityMapSize, j);
                             k = -1;
                         }
+                    }
+                }
+
+                // Apply the altering of the values
+                for (int j = 0; j < cityMapSize; ++j) {
+                    /*
+                     * Use a similar logic to the crossover process where we generate a random number between 0 and 1.
+                     * If this is lower than the altering rate (mutation rate), than we apply it to the city.
+                     * */
+                    if (rand.nextDouble() < MUTATION_RATE) {
+                        int mutationPoint = rand.nextInt(cityMapSize); //Select another city in the tour (random) to swap with current
+                        int temp = possibleTours[i][j];
+                        possibleTours[i][j] = possibleTours[i][mutationPoint]; //Alter the tour with, perform swap
+                        possibleTours[i][mutationPoint] = temp; //Assign the current city to the mutation point
                     }
                 }
 
