@@ -31,7 +31,7 @@ public class Helper {
         for (int i = 0; i < maxCitySize - 1; ++i) {
             distance += graph[tour[i]][tour[i + 1]];
         }
-        distance += graph[tour[0]][tour[maxCitySize - 1]]; // Return to starting city
+        distance += graph[tour[maxCitySize - 1]][tour[0]]; // Return to starting city
         return distance;
     }
 
