@@ -78,6 +78,7 @@ public class Helper {
             for (int i = 0; i < cityCount; i++) {
                 String[] values = br.readLine().split(" ");
                 for (int j = 0; j < cityCount; j++) {
+                    if(values[j].isEmpty()) continue;
                     matrix[i][j] = Integer.parseInt(values[j]);
                 }
             }
