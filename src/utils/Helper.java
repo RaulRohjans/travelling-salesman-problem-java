@@ -77,9 +77,12 @@ public class Helper {
             int[][] matrix = new int[cityCount][cityCount];
             for (int i = 0; i < cityCount; i++) {
                 String[] values = br.readLine().split(" ");
+                int matrixCounter = 0;
                 for (int j = 0; j < cityCount; j++) {
-                    if(values[j].isEmpty()) continue;
-                    matrix[i][j] = Integer.parseInt(values[j]);
+                    if(!values[j].isEmpty()) {
+                        matrix[i][matrixCounter] = Integer.parseInt(values[j]);
+                        matrixCounter++;
+                    }
                 }
             }
 
