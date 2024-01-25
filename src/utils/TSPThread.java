@@ -7,7 +7,7 @@ import static utils.Helper.*;
 public class TSPThread extends Thread {
 
     private final TourData tourData;
-    private ExecutionSettings settings;
+    private final ExecutionSettings settings;
 
     public TSPThread(TourData tourData, ExecutionSettings settings) {
         this.tourData = tourData;
